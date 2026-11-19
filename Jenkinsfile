@@ -2,37 +2,31 @@
 pipeline {
     agent any
 
-    environment {
-        TOMCAT_HOME = '/home/user/apache-tomcat'
-        APP_NAME = 'myapp'
-    }
-
     stages {
 
         stage('Git Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/USERNAME/REPOSITORY.git'
+                checkout scm
+                echo 'GitHub source code checked out'
             }
         }
 
         stage('Maven Build') {
             steps {
-                sh 'mvn clean package'
+                bat 'mvn -B clean package'
             }
         }
 
-        stage('Test') {
+        stage('Verify WAR') {
             steps {
-                sh 'mvn test'
+                bat 'dir target\\apartmentsystem.war'
             }
         }
 
         stage('Deploy to Tomcat') {
             steps {
-                sh '''
-                    cp target/*.war \
-                    "$TOMCAT_HOME/webapps/$APP_NAME.war"
+                bat '''
+                copy /Y "target\\apartmentsystem.war" "C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\apartmentsystem.war"
                 '''
             }
         }
@@ -40,11 +34,11 @@ pipeline {
 
     post {
         success {
-            echo 'Build and deployment successful!'
+            echo 'ApartmentSystem deployed successfully!'
         }
 
         failure {
-            echo 'Build or deployment failed!'
+            echo 'CI/CD pipeline failed. Check Console Output.'
         }
     }
 }
